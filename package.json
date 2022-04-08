@@ -23,7 +23,13 @@
   "homepage": "https://github.com/tbd/webexbotstarter#readme",
   "dependencies": {
     "body-parser": "^1.15.2",
+    "cookie-parser": "^1.4.6",
     "express": "^4.14.0",
+    "express-mysql-session": "^2.1.7",
+    "express-session": "^1.17.2",
+    "mysql2": "^2.3.3",
+    "sequelize": "^6.18.0",
+    "tedious": "^14.4.0",
     "webex-node-bot-framework": "^2.3.1"
   }
 }
