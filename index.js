@@ -1048,7 +1048,13 @@ framework.hears(/fbanswer/, function (bot, trigger) {
   var fbresponseStr = JSON.stringify(fbresponse)
   var fbresponseObj = JSON.parse(fbresponseStr)
   console.log("ANSWER: " + fbresponseObj)
+
+  var newdate = new Date()
+  var datestr = JSON.stringify(newdate)
+  var dateObj = JSON.parse(datestr)
+  let cutdate = dateObj.substring(0,10)
   Feedback.create({
+    fbdate: cutdate,
     fbresponse: fbresponseObj
   }).then(() => {
     console.log("feedback in db")
@@ -1074,7 +1080,7 @@ framework.hears(/seefeedback/, function (bot, trigger) {
         //i++ //increment message is a dog
         //let fbresponsemsg = `**RESPONSE:**`;
         let newstr = (feedbackobj.fbresponse).substring(13)
-        bot.say("RESPONSE: " + newstr);
+        bot.say("RESPONSE ON " + feedbackobj.fbdate + ": "+ newstr);
       } else {
         console.log("inresponse else")
         bot.say("No feedbacks yet.");
