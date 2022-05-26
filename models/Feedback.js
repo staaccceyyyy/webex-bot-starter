@@ -8,4 +8,4 @@ const Feedback = db.define('feedback', {
         type: Sequelize.STRING(1000)
     }
 });
-module.exports = Feedback;
+module.exports = Feedback;  

@@ -3,4 +3,4 @@ module.exports = {
     database: 'fyp',
     username: 'fyp',
     password: 'fyp'
-}
+} 

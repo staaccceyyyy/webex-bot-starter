@@ -27,4 +27,4 @@ const setUpDB = (drop) => {
         })
         .catch(err => console.log('Error: ' + err));
 };
-module.exports = { setUpDB };
+module.exports = { setUpDB }; 

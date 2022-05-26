@@ -13,7 +13,7 @@ const Product = db.define('product', {
     prodquantity: {
         type: Sequelize.INTEGER
     },
-    prodprice: {
+    prodprice: { 
         type: Sequelize.FLOAT
     },
     prodnotify: {

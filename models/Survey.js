@@ -14,7 +14,7 @@ const Survey = db.define('survey', {
         type: Sequelize.STRING
     },
     aq1: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING 
     },
     aq2: {
         type: Sequelize.STRING
