@@ -16,6 +16,7 @@ const Survey = require('./models/Survey');
 const SurveyQuestions = require('./models/SurveyQuestions');
 const Feedback = require('./models/Feedback');
 const Agenda = require('./models/Agenda');
+const Report = require('./models/Report');
 
 // INIT FRAMEWORK START
 var framework = new framework(config);
@@ -29,10 +30,10 @@ framework.on("initialized", function () {
 // A spawn event is generated when the framework finds a space with your bot in it
 // If actorId is set, it means that user has just added your bot to a new space
 // If not, the framework has discovered your bot in an existing space
-framework.on('spawn', (bot, id, actorId) => {
+framework.on('spawn', (bot, id, actorId, trigger) => {
   // When actorId is present it means someone added your bot got added to a new space
   // Lets find out more about them..
-  var msg1 = 'what do you want to do today? You can say `mainmenu` to get the list of words I am able to respond to.';
+  var msg1 = 'what do you want to do today? You can say `albert help` to get the list of words I am able to respond to.';
   bot.webex.people.get(actorId).then((user) => {
     msg1 = `Hello there ${user.displayName}. ${msg}`
     console.log("here? no way");
@@ -50,6 +51,9 @@ framework.on('spawn', (bot, id, actorId) => {
         let botName = bot.person.displayName;
         msg1 += `\n\nDon't forget, in order for me to see your messages in this group space, be sure to *@${botName}*.`;
         bot.say('markdown', msg1)
+          .then(() => alberthelp(bot, trigger))
+        
+        
         //notifications(bot);
       }
     });
@@ -64,19 +68,22 @@ let responded = false;
 ex User enters @botname help, the bot will write back in markdown
 */
 // menu summary of commands start
-framework.hears(/help|what can i (do|say)|what (can|do) you do/i, function (bot, trigger) {
-  console.log(`someone needs help! They asked ${trigger.text}`);
-  responded = true;
-  bot.say(`Hello ${trigger.person.displayName}.`)
-    .then(() => sendHelp(bot))
-    .catch((e) => console.error(`Problem in help hander: ${e.message}`));
-});
+// framework.hears(/help|what can i (do|say)|what (can|do) you do/i, function (bot, trigger) {
+//   console.log(`someone needs help! They asked ${trigger.text}`);
+//   responded = true;
+//   bot.say(`Hello ${trigger.person.displayName}.`)
+//     .then(() => sendHelp(bot))
+//     .catch((e) => console.error(`Problem in help hander: ${e.message}`));
+// });
 
-framework.hears('mainmenu', function (bot, trigger) {
+framework.hears('albert help', function (bot, trigger) {
   console.log(`someone needs help! They asked ${trigger.text}`);
   responded = true;
   bot.say(`Hello ${trigger.person.displayName}.`)
-    .then(() => mainmenu(bot))
+    .then(() => {
+      alberthelp(bot)
+      //bot.dm(trigger.person.id, managercmd(bot))
+    })
     .catch((e) => console.error(`Problem in help hander: ${e.message}`));
 });
 // menu summary of commands end
@@ -226,7 +233,7 @@ function searchcode() {
     var usersearch = trigger.text
     var usersearchStr = JSON.stringify(usersearch)
     var usersearchObj = JSON.parse(usersearchStr)
-    let newusersearchstr = usersearchObj.substring(4)
+    let newusersearchstr = usersearchObj.substring(7)
     //console.log("user search for: " + trigger.text + " ||" + newusersearchstr )
     responded = true;
     //bot.reply(trigger.message, 'Searching for product...','markdown');
@@ -249,157 +256,157 @@ function searchcode() {
   });
 }
  
-framework.hears(/edit product/, function (bot, trigger) {
-  console.log("someone asked for a card");
-  responded = true;
-  //funcaddprod(bot.sendCard(createproductcardJSON, 'This is customizable fallback text for clients that do not support buttons & cards'));
-  //bot.sendCard(updateproductcardJSON, 'This is customizable fallback text for clients that do not support buttons & cards');
-  let botName = bot.person.displayName;
-  updprodmsg = `Please enter the product code that you want to edit. \nDon't forget to *@${botName}* at the start of your response.`;
-  bot.say('markdown', updprodmsg)
-    .then(() => toupdate());
-});
+// framework.hears(/edit product/, function (bot, trigger) {
+//   console.log("someone asked for a card");
+//   responded = true;
+//   //funcaddprod(bot.sendCard(createproductcardJSON, 'This is customizable fallback text for clients that do not support buttons & cards'));
+//   //bot.sendCard(updateproductcardJSON, 'This is customizable fallback text for clients that do not support buttons & cards');
+//   let botName = bot.person.displayName;
+//   updprodmsg = `Please enter the product code that you want to edit. \nDon't forget to *@${botName}* at the start of your response.`;
+//   bot.say('markdown', updprodmsg)
+//     .then(() => toupdate());
+// });
 
-function toupdate() {
-  responded = true;
-  framework.hears(/[1-9][0-9]{3}/i, function (bot, trigger) {
-    responded = true;
-    var usersearch = trigger.text
-    var usersearchStr = JSON.stringify(usersearch)
-    var usersearchObj = JSON.parse(usersearchStr)
-    let newusersearchstr = usersearchObj.substring(4)
-    responded = true;
+// function toupdate() {
+//   responded = true;
+//   framework.hears(/[1-9][0-9]{3}/i, function (bot, trigger) {
+//     responded = true;
+//     var usersearch = trigger.text
+//     var usersearchStr = JSON.stringify(usersearch)
+//     var usersearchObj = JSON.parse(usersearchStr)
+//     let newusersearchstr = usersearchObj.substring(4)
+//     responded = true;
 
-    Product.findOne({
-      where: {
-        prodcode: newusersearchstr
-      }, raw: true
-    }).then((product) => {
-      if (product) { 
-        let newpcode = product.prodcode
-        let newptitl = product.prodtitle
-        let newpdesc = product.proddesc
-        let newpquan = product.prodquantity
-        let newppric = product.prodprice
-        let newpnoti = product.prodnotify
+//     Product.findOne({
+//       where: {
+//         prodcode: newusersearchstr
+//       }, raw: true
+//     }).then((product) => {
+//       if (product) { 
+//         let newpcode = product.prodcode
+//         let newptitl = product.prodtitle
+//         let newpdesc = product.proddesc
+//         let newpquan = product.prodquantity
+//         let newppric = product.prodprice
+//         let newpnoti = product.prodnotify
 
-        updateproduct(bot, newpcode, newptitl, newpdesc, newpquan, newppric, newpnoti)
-      } else {
-        bot.say("No record of product.")
-      }
-    }).catch(err => console.log(err));
-  });
-}
+//         updateproduct(bot, newpcode, newptitl, newpdesc, newpquan, newppric, newpnoti)
+//       } else {
+//         bot.say("No record of product.")
+//       }
+//     }).catch(err => console.log(err));
+//   });
+// }
 
 //test tmr it doesnt work
-function updateproduct(bot, newpcode, newptitl, newpdesc, newpquan, newppric, newpnoti) {
-  let updateproductcardJSON =
-  {
-    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-    "type": "AdaptiveCard",
-    "version": "1.0",
-    "body": [
-      {
-        "type": "ColumnSet",
-        "columns": [
-          {
-            "type": "Column",
-            "width": 2,
-            "items": [
-              {
-                "type": "TextBlock",
-                "text": "Update Product " + newpcode,
-                "weight": "bolder",
-                "size": "medium"
-              },
-              {
-                "type": "TextBlock",
-                "text": "Update the details of the product you would like to add. Then click submit once you are done.",
-                "isSubtle": true,
-                "wrap": true
-              },
+// function updateproduct(bot, newpcode, newptitl, newpdesc, newpquan, newppric, newpnoti) {
+//   let updateproductcardJSON =
+//   {
+//     "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+//     "type": "AdaptiveCard",
+//     "version": "1.0",
+//     "body": [
+//       {
+//         "type": "ColumnSet",
+//         "columns": [
+//           {
+//             "type": "Column",
+//             "width": 2,
+//             "items": [
+//               {
+//                 "type": "TextBlock",
+//                 "text": "Update Product " + newpcode,
+//                 "weight": "bolder",
+//                 "size": "medium"
+//               },
+//               {
+//                 "type": "TextBlock",
+//                 "text": "Update the details of the product you would like to add. Then click submit once you are done.",
+//                 "isSubtle": true,
+//                 "wrap": true
+//               },
   
-              {
-                "type": "Input.Number",
-                "id": "prodcode", // put input in here without quotes (storing name as data in db rn)
-                "value": newpcode,
-                "isVisible": false
-              },
+//               {
+//                 "type": "Input.Number",
+//                 "id": "prodcode", // put input in here without quotes (storing name as data in db rn)
+//                 "value": newpcode,
+//                 "isVisible": false
+//               },
   
-              {
-                "type": "TextBlock",
-                "text": "Product Title:",
-                "wrap": true
-              },
-              {
-                "type": "Input.Text",
-                "id": "prodtitle",
-                "value": newptitl,
-                "placeholder": "eg. Pen"
+//               {
+//                 "type": "TextBlock",
+//                 "text": "Product Title:",
+//                 "wrap": true
+//               },
+//               {
+//                 "type": "Input.Text",
+//                 "id": "prodtitle",
+//                 "value": newptitl,
+//                 "placeholder": "eg. Pen"
                 
-              },
+//               },
   
-              {
-                "type": "TextBlock",
-                "text": "Description",
-                "wrap": true
-              },
-              {
-                "type": "Input.Text",
-                "id": "proddesc",
-                "value": newpdesc,
-                "placeholder": "eg. Red",
+//               {
+//                 "type": "TextBlock",
+//                 "text": "Description",
+//                 "wrap": true
+//               },
+//               {
+//                 "type": "Input.Text",
+//                 "id": "proddesc",
+//                 "value": newpdesc,
+//                 "placeholder": "eg. Red",
   
-              },
+//               },
   
-              {
-                "type": "TextBlock",
-                "text": "Quantity:",
-                "wrap": true
-              },
-              {
-                "type": "Input.Number",
-                "id": "prodquantity",
-                "value": newpquan,
-                "placeholder": "eg. 100",
-              },
+//               {
+//                 "type": "TextBlock",
+//                 "text": "Quantity:",
+//                 "wrap": true
+//               },
+//               {
+//                 "type": "Input.Number",
+//                 "id": "prodquantity",
+//                 "value": newpquan,
+//                 "placeholder": "eg. 100",
+//               },
   
-              {
-                "type": "TextBlock",
-                "text": "Price:",
-                "wrap": true
-              },
-              {
-                "type": "Input.Number",
-                "id": "prodprice",
-                "value": newppric,
-                "placeholder": "eg. 10.50",
-              },
-              {
-                "type": "TextBlock",
-                "text": "Notify at Low Quantity:",
-                "wrap": true
-              },
-              {
-                "type": "Input.Number",
-                "id": "prodnotify",
-                "value": newpnoti,
-                "placeholder": "eg. 5",
-              },
+//               {
+//                 "type": "TextBlock",
+//                 "text": "Price:",
+//                 "wrap": true
+//               },
+//               {
+//                 "type": "Input.Number",
+//                 "id": "prodprice",
+//                 "value": newppric,
+//                 "placeholder": "eg. 10.50",
+//               },
+//               {
+//                 "type": "TextBlock",
+//                 "text": "Notify at Low Quantity:",
+//                 "wrap": true
+//               },
+//               {
+//                 "type": "Input.Number",
+//                 "id": "prodnotify",
+//                 "value": newpnoti,
+//                 "placeholder": "eg. 5",
+//               },
   
-            ]
-          },
+//             ]
+//           },
   
-        ]
-      }
-    ],
-    "actions": [
-      {
-        "type": "Action.Submit",
-        "title": "Submit"
-      }
-    ]
-  }
+//         ]
+//       }
+//     ],
+//     "actions": [
+//       {
+//         "type": "Action.Submit",
+//         "title": "Submit"
+//       }
+//     ]
+//   }
 
   // Product.update({
   //   prodtitle: newptitl,
@@ -415,20 +422,20 @@ function updateproduct(bot, newpcode, newptitl, newpdesc, newpquan, newppric, ne
   //   bot.sendCard(updateproductcardJSON, 'plswork')
   // })
   
-  bot.sendCard(updateproductcardJSON, 'plswork').then(() => {
-    Product.update({
-      prodtitle: newptitl,
-      proddesc: newpdesc,
-      prodquantity: newpquan,
-      prodprice: newppric,
-      prodnotify: newpnoti
-    }, { 
-      where: {
-        prodcode: newpcode
-      }
-    })
-  })
-}
+//   bot.sendCard(updateproductcardJSON, 'plswork').then(() => {
+//     Product.update({
+//       prodtitle: newptitl,
+//       proddesc: newpdesc,
+//       prodquantity: newpquan,
+//       prodprice: newppric,
+//       prodnotify: newpnoti
+//     }, { 
+//       where: {
+//         prodcode: newpcode
+//       }
+//     })
+//   })
+// }
 
 
 
@@ -455,7 +462,7 @@ function updateproduct(bot, newpcode, newptitl, newpdesc, newpquan, newppric, ne
 // FEATURE: PRODUCT SEARCH END///////////////////////////////////////
 
 // TRY FEATURE: SURVEY QN START///////////////////////////////////////
-framework.hears(/createsurvey/, function (bot, trigger) {
+framework.hears(/create survey/, function (bot, trigger) {
   console.log("survey qn card here");
   responded = true;
   //funcnewcard(bot.sendCard(newcardJSON,'This is customizable fallback text for clients that do not support buttons & cards'));
@@ -589,7 +596,7 @@ let surveyqnsCARD =
 
 // });
 
-framework.hears(/sendsurvey/, function (bot, trigger) {
+framework.hears(/send survey/, function (bot, trigger) {
   console.log("in sendsurvey");
   responded = true;
   let botName = bot.person.displayName; 
@@ -609,7 +616,8 @@ function newsurveycode() {
     var usersearch = trigger.text
     var usersearchStr = JSON.stringify(usersearch)
     var usersearchObj = JSON.parse(usersearchStr)
-    let newusersearchstr = usersearchObj.substring(4)
+    let newusersearchstr = usersearchObj.substring(7)
+    console.log("this here:" + newusersearchstr)
     //console.log("user search for: " + trigger.text + " ||" + newusersearchstr )
     responded = true;
 
@@ -792,7 +800,7 @@ function sendsurvey(bot, ansename, ansemail, ansscode, anstitle, ansdescr, ansqu
   )
 }
 
-framework.hears(/surveyresponse/i, function (bot, trigger) {
+framework.hears(/survey responses/i, function (bot, trigger) {
   console.log("this is inside surveyresponse.");
   responded = true;
 
@@ -814,7 +822,7 @@ function getsurvey() {
     var usersurvey = trigger.text
     var usersurveyStr = JSON.stringify(usersurvey)
     var usersurveyObj = JSON.parse(usersurveyStr)
-    let newusersurveystr = usersurveyObj.substring(4)
+    let newusersurveystr = usersurveyObj.substring(7)
     //console.log("user search for: " + trigger.text + " ||" + newusersearchstr )
     responded = true;
     //bot.reply(trigger.message, 'Searching for product...','markdown');
@@ -1062,7 +1070,7 @@ framework.hears(/fbanswer/, function (bot, trigger) {
   })
 });
 
-framework.hears(/seefeedback/, function (bot, trigger) {
+framework.hears(/get feedbacks/, function (bot, trigger) {
   //see all the feedback given
   console.log("inside seefeedback")
   //bot.say("List of feedbacks...")
@@ -1079,134 +1087,135 @@ framework.hears(/seefeedback/, function (bot, trigger) {
         console.log("inresponse notnull")
         //i++ //increment message is a dog
         //let fbresponsemsg = `**RESPONSE:**`;
-        let newstr = (feedbackobj.fbresponse).substring(13)
+        let newstr = (feedbackobj.fbresponse).substring(16)
         bot.say("RESPONSE ON " + feedbackobj.fbdate + ": "+ newstr);
-      } else {
-        console.log("inresponse else")
-        bot.say("No feedbacks yet.");
-      }
+      } 
+      // else {
+      //   console.log("inresponse else")
+      //   bot.say("No feedbacks yet.");
+      // }
     })
   }).catch(err => console.log(err));
 });
 // FEATURE: FEEDBACK END ///////////////////////////////////////
 
-// FEATURE: HELPBOT START ///////////////////////////////////////
-framework.hears('helpbot', function(bot,trigger){
-  console.log("called for helpbot card");    
-  responded = true;
-  bot.sendCard(wagwan, 'what wld u do?')
-  });
+// // FEATURE: HELPBOT START ///////////////////////////////////////
+// framework.hears('helpbot', function(bot,trigger){
+//   console.log("called for helpbot card");    
+//   responded = true;
+//   bot.sendCard(wagwan, 'what wld u do?')
+//   });
  
-let wagwan =
-  {
-    "type": "AdaptiveCard",
-    "body": [
-        {
-            "type": "ColumnSet",
-            "columns": [
-                {
-                    "type": "Column",
-                    "items": [
-                        {
-                            "type": "Image",
-                            "style": "Person",
-                            "url": "https://developer.webex.com/images/webex-teams-logo.png",
-                            "size": "Medium",
-                            "height": "50px"
-                        }
-                    ],
-                    "width": "auto"
-                },
-                {
-                    "type": "Column",
-                    "items": [
-                        {
-                            "type": "TextBlock",
-                            "text": "Cisco Webex Teams",
-                            "weight": "Lighter",
-                            "color": "Accent"
-                        },
-                        {
-                            "type": "TextBlock",
-                            "weight": "Bolder",
-                            "text": "HelpBot",
-                            "wrap": true,
-                            "color": "Light",
-                            "size": "Large",
-                            "spacing": "Small"
-                        }
-                    ],
-                    "width": "stretch"
-                }
-            ]
-        },
-        {
-            "type": "TextBlock",
-            "text": "Hello im Albert, i heard you call for help! Is there anything i can help you with? ",
-            "wrap": true
+// let wagwan =
+//   {
+//     "type": "AdaptiveCard",
+//     "body": [
+//         {
+//             "type": "ColumnSet",
+//             "columns": [
+//                 {
+//                     "type": "Column",
+//                     "items": [
+//                         {
+//                             "type": "Image",
+//                             "style": "Person",
+//                             "url": "https://developer.webex.com/images/webex-teams-logo.png",
+//                             "size": "Medium",
+//                             "height": "50px"
+//                         }
+//                     ],
+//                     "width": "auto"
+//                 },
+//                 {
+//                     "type": "Column",
+//                     "items": [
+//                         {
+//                             "type": "TextBlock",
+//                             "text": "Cisco Webex Teams",
+//                             "weight": "Lighter",
+//                             "color": "Accent"
+//                         },
+//                         {
+//                             "type": "TextBlock",
+//                             "weight": "Bolder",
+//                             "text": "HelpBot",
+//                             "wrap": true,
+//                             "color": "Light",
+//                             "size": "Large",
+//                             "spacing": "Small"
+//                         }
+//                     ],
+//                     "width": "stretch"
+//                 }
+//             ]
+//         },
+//         {
+//             "type": "TextBlock",
+//             "text": "Hello im Albert, i heard you call for help! Is there anything i can help you with? ",
+//             "wrap": true
            
-        },
-        {
-            "type": "TextBlock",
-            "text": "Please select one of the above options:"
-        },
-        {
-            "type": "ActionSet"
-        }
-    ],
-    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-    "version": "1.2",
-    "actions": [
-        {
-            "type": "Action.Execute",
-            "title": "More Info",
-            //"callback_data": hek
+//         },
+//         {
+//             "type": "TextBlock",
+//             "text": "Please select one of the above options:"
+//         },
+//         {
+//             "type": "ActionSet"
+//         }
+//     ],
+//     "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+//     "version": "1.2",
+//     "actions": [
+//         {
+//             "type": "Action.Execute",
+//             "title": "More Info",
+//             //"callback_data": hek
            
-        },
-        {
-          "type": "Action.ShowCard",
-          "title": "Alcohol Products",
-          "card": {
-            "type": "AdaptiveCard",
-            "body": [
-              {
-                "type": "TextBlock",
-                "text": "You have to separately packed them into another box"
-              }
-            ]
-            }
-        },
-        {
-          "type": "Action.ShowCard",
-          "title": "Glassware",
-          "id": "cardtotoggle", //////test for Action.ToggleVisibility
-          "card": {
-            "type": "AdaptiveCard",
-            "body": [
-              {
-                "type": "TextBlock",
-                "text": "Handle them with gloves"
-              }
-            ]
-            }
-        },
-        {
-          "type": "Action.Execute",
-          "title": "Not Helpful",
-          "data": "edit",
-          //"onclick" 
-          //IS IT ACTION???
+//         },
+//         {
+//           "type": "Action.ShowCard",
+//           "title": "Alcohol Products",
+//           "card": {
+//             "type": "AdaptiveCard",
+//             "body": [
+//               {
+//                 "type": "TextBlock",
+//                 "text": "You have to separately packed them into another box"
+//               }
+//             ]
+//             }
+//         },
+//         {
+//           "type": "Action.ShowCard",
+//           "title": "Glassware",
+//           "id": "cardtotoggle", //////test for Action.ToggleVisibility
+//           "card": {
+//             "type": "AdaptiveCard",
+//             "body": [
+//               {
+//                 "type": "TextBlock",
+//                 "text": "Handle them with gloves"
+//               }
+//             ]
+//             }
+//         },
+//         {
+//           "type": "Action.Execute",
+//           "title": "Not Helpful",
+//           "data": "edit",
+//           //"onclick" 
+//           //IS IT ACTION???
  
-        }
-    ]
-  };
+//         }
+//     ]
+//   };
 // FEATURE: HELPBOT END ///////////////////////////////////////
 
 // FEATURE: NOTIFICATIONS START ////////////////////////////////
 
 // function notifications(bot) {
 // console.log("inside notif func")
-framework.hears(/lowstock/, function (bot, trigger) {
+framework.hears(/low stock/, function (bot, trigger) {
   responded = true;
   Product.findAll({
     where: {},
@@ -1337,7 +1346,7 @@ function dmAgenda(bot, email, thedate){
     }
      
 
-framework.hears(/gettasks/, function (bot, trigger) {
+framework.hears(/get tasks/, function (bot, trigger) {
   responded = true;
 
   var newdate = new Date()
@@ -1669,107 +1678,167 @@ let Wcard =
 
 //FEATURE: MANAGEMENT - WEATHER END ////////////////////////////////
 
-framework.hears('framework', function (bot) {
-  var jds = new Date()
-  var dfsfs = jds.getDate
-  console.log("jds: " + jds + ", " + dfsfs)
-  console.log("framework command received");
+//FEATURE: MANAGEMENT - REPORT START ////////////////////////////////
+
+framework.hears('report', function (bot, trigger) {
+  console.log("called for report card");
   responded = true;
-  bot.say("markdown", "The primary purpose for the [webex-node-bot-framework](https://github.com/jpjpjp/webex-node-bot-framework) was to create a framework based on the [webex-jssdk](https://webex.github.io/webex-js-sdk) which continues to be supported as new features and functionality are added to Webex. This version of the project was designed with two themes in mind: \n\n\n * Mimimize Webex API Calls. The original flint could be quite slow as it attempted to provide bot developers rich details about the space, membership, message and message author. This version eliminates some of that data in the interests of efficiency, (but provides convenience methods to enable bot developers to get this information if it is required)\n * Leverage native Webex data types. The original flint would copy details from the webex objects such as message and person into various flint objects. This version simply attaches the native Webex objects. This increases the framework's efficiency and makes it future proof as new attributes are added to the various webex DTOs ");
+  var reportname = trigger.person.displayName
+  reportcard(bot, reportname)
 });
+ 
+function reportcard(bot, reportname) { 
 
-/* On mention with command, using other trigger data, can use lite markdown formatting
-ex User enters @botname 'info' phrase, the bot will provide personal details
-*/
-framework.hears('info', function (bot, trigger) {
-  console.log("info command received");
-  responded = true;
-  //the "trigger" parameter gives you access to data about the user who entered the command
-  let personAvatar = trigger.person.avatar;
-  let personEmail = trigger.person.emails[0];
-  let personDisplayName = trigger.person.displayName;
-  // var assert = require('assert');
-  // if(membership.isModerator = true) {
-  //   console.log("is mod")
-  // }
-  let outputString = `Here is your personal information: \n\n\n **Name:** ${personDisplayName}  \n\n\n **Email:** ${personEmail} \n\n\n **Avatar URL:** ${personAvatar}`;
-  bot.say("markdown", outputString);
-});
-
-/* On mention with bot data 
-ex User enters @botname 'space' phrase, the bot will provide details about that particular space
-*/
-framework.hears('space', function (bot) {
-  console.log("space. the final frontier");
-  responded = true;
-  let roomTitle = bot.room.title;
-  let spaceID = bot.room.id;
-  let roomType = bot.room.type;
-
-  let outputString = `The title of this space: ${roomTitle} \n\n The roomID of this space: ${spaceID} \n\n The type of this space: ${roomType}`;
-
-  console.log(outputString);
-  bot.say("markdown", outputString)
-    .catch((e) => console.error(`bot.say failed: ${e.message}`));
-});
-
-/* 
-   Say hi to every member in the space
-   This demonstrates how developers can access the webex
-   sdk to call any Webex API.  API Doc: https://webex.github.io/webex-js-sdk/api/
-*/
-framework.hears("hi", function (bot) {
-  console.log("say hi to everyone.  Its a party");
-  responded = true;
-  // Use the webex SDK to get the list of users in this space
-  bot.webex.memberships.list({ roomId: bot.room.id })
-    .then((memberships) => {
-      for (const member of memberships.items) {
-        if (member.personId === bot.person.id) {
-          // Skip myself!
-          continue;
-        }
-        let displayName = (member.personDisplayName) ? member.personDisplayName : member.personEmail;
-        let displayEmail = (member.personEmail) ? member.personEmail : member.personDisplayName;
-        bot.say(`Hello ${displayName}, this is your email ${displayEmail}.`)
-
-        //idk bruh
-        //.then(function(memberships) {
-          // membership = memberships.items[0];
-          // var assert = require('assert');
-          // assert.equal(membership.isModerator, false);
-          // membership.isModerator = true;
-          // return webex.memberships.update(membership)
-        //})
-        // .then(function() {
-        //   //console.log("it goes in here eeeee")
-        //   return webex.memberships.get(membership.id);
-        // })
-        // .then(function(membership) {
-        //   var assert = require('assert');
-        //   assert.equal(membership.isModerator, true);
-        //   return 'success';
-        // });
-
+  let report =
+  {
+    "type": "AdaptiveCard",
+    "body": [
+      {
+        "type": "TextBlock",
+        "text": "Incident Report",
+        "size": "large"
+      },
+      {
+ 
+        "type": "TextBlock",
+        "text": "Hello, " + reportname + ". Do you want to report something?",
+        "placeholder": "Please enter something",
+      },
+      {
+ 
+        "type": "Input.Text",
+        "id": "reportguy",
+        "value": reportname,
+        "isVisible": false
+      },
+      {
+ 
+        "type": "Input.Text",
+        "placeholder": "Please enter something",
+        "id": "report1"
       }
-    })
-    .catch((e) => {
-      //console.error(`Call to sdk.memberships.get() failed: ${e.messages}`);
-      bot.say('Hello everybody!');
-    });
-});
+    ],
+    "actions": [
+      {
+        "type": "Action.Submit",
+        "title": "Submit"
+      },
+      {
+        "type": "Action.ShowCard",
+        "title": "Add field",
+        "card": {
+          "type": "AdaptiveCard",
+          "body": [
+            {
+              "type": "Input.Text",
+              "placeholder": "Placeholder 2",
+              "id": "report2"
+            }
+          ],
+          "actions": [
+            {
+              "type": "Action.Submit",
+              "title": "Submit"
+            },
+            {
+              "type": "Action.ShowCard",
+              "title": "Add field",
+              "card": {
+                "type": "AdaptiveCard",
+                "body": [
+                  {
+                    "type": "Input.Text",
+                    "placeholder": "Placeholder 3",
+                    "id": "report3"
+                  }
+                ],
+                "actions": [
+                  {
+                    "type": "Action.Submit",
+                    "title": "Submit"
+                  },
+                  {
+                    "type": "Action.ShowCard",
+                    "title": "Add field",
+                    "card": {
+                      "type": "AdaptiveCard",
+                      "body": [
+                        {
+                          "type": "Input.Text",
+                          "placeholder": "Placeholder 4",
+                          "id": "report4"
+                        }
+                      ],
+                      "actions": [
+                        {
+                          "type": "Action.Submit",
+                          "title": "Submit"
+                        },
+                      ],
+                      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
+                    }
+                  }
+                ],
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
+              }
+            }
+          ],
+          "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
+        }
+      }
+    ],
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "version": "1.0"
+  }
+  bot.sendCard(report, 'what wld u do?')
+}
 
-//////////////////////////////////////////////////////////START OF bs FORM//////////////////////////////////////////////////////////////////////////////////
-//const thisid = null
-framework.hears('card', function (bot, trigger) {
-  console.log("someone asked for a card");
+
+framework.hears('get reports', function (bot, trigger) {
+  console.log("called for get reports");
   responded = true;
-  //funcnewcard(bot.sendCard(newcardJSON,'This is customizable fallback text for clients that do not support buttons & cards'));
-  bot.sendCard(newcardJSON, 'This is customizable fallback text for clients that do not support buttons & cards')
+  //bot.say("Printing out all reports now.....")
+  Report.findAll({
+    where: {},
+    raw: true,
+  }).then((report) => {
+    console.log("before for loop")
+    report.forEach(reportobj => {
+      if (reportobj.reportguy != null) {
+        console.log("after for loop")
+        if (reportobj.report2 == null) {
+          console.log("in report 1")
+          bot.say(reportobj.reportguy + " report..." + "\n1. " + reportobj.report1)
+        } else if (reportobj.report3 == null) {
+          console.log("in report 2")
+          bot.say(reportobj.reportguy + " report..." + "\n1. " + reportobj.report1 + "\n2. " + reportobj.report2)
+        } else if (reportobj.report4 == null) {
+          console.log("in report 3")
+          bot.say(reportobj.reportguy + " report..." + "\n1. " + reportobj.report1 + "\n2. " + reportobj.report2 + "\n3. " + reportobj.report3)
+        } else if (reportobj.report4 != null) {
+          console.log("in report 4")
+          bot.say(reportobj.reportguy + " report..." + "\n1. " + reportobj.report1 + "\n2. " + reportobj.report2 + "\n3. " + reportobj.report3 + "\n4. " + reportobj.report4)
+        } else {
+          //reponded = true;
+          console.log("in report else")
+          bot.say("No incidents reported.");
+        }
+    } 
+    // else {
+    //   console.log("in this report else")
+    //   bot.say("No incidents reported.");
+    // }
+    })
+  }).catch(err => console.log(err));
 });
-// process a submitted card////
 
-// function funcnewcard() { 
+
+
+//FEATURE: MANAGEMENT - REPORT END ////////////////////////////////
+
+
+//////////////////////////////// ATTACHMENT ACTION ////////////////////////////////
+
 framework.on('attachmentAction', function (bot, trigger) {
   // bot.say(`Got an attachmentAction:\n${JSON.stringify(trigger.attachmentAction,null,2)}`);///
   // if (cardid = "newcardID") {
@@ -1793,244 +1862,72 @@ framework.on('attachmentAction', function (bot, trigger) {
   Agenda.create(responseInput).then((agenda) => {
     console.log("agenda in db");
   })
+  Report.create(responseInput).then((report) => {
+    console.log("report in db");
+  })
   // } 
 });
-// }
 
-//figure out how to put input into name var
-let newcardJSON =
-{
-  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-  "type": "AdaptiveCard",
-  "version": "1.0",
-  "body": [
-    {
-      "type": "ColumnSet",
-      "columns": [
-        {
-          "type": "Column",
-          "width": 2,
-          "items": [
-            {
-              "type": "TextBlock",
-              "text": "THis is a workplace survey aha",
-              "weight": "bolder",
-              "size": "medium"
-            },
-            {
-              "type": "TextBlock",
-              "text": "Hello, we are a group of NYP students who are developing a company management system and we would like to find out more about the satisfaction levels of working adults regarding stock and welfare management. This survey will only take you about 5-10 minutes of your time. Thank you!",
-              "isSubtle": true,
-              "wrap": true
-            },
-            {
-              "type": "TextBlock",
-              "text": "Do not worry, ur answers will be kept private so aha",
-              "isSubtle": true,
-              "wrap": true,
-              "size": "small"
-            },
-
-            {
-              "type": "TextBlock",
-              "text": 'How often do you feel lost when your manager is not there to help you?(Y/N)',
-              "wrap": true
-            },
-            {
-              "type": "Input.Text",
-              "id": "name", // put input in here without quotes (storing name as data in db rn)
-              "placeholder": "John Andersen"
-            },
-            {
-              "type": "TextBlock",
-              "text": "Is it a hassle to always have to communicate with suppliers/managers regarding restocking of products?(Y/N)",
-              "wrap": true
-            },
-            {
-              "type": "Input.Text",
-              "id": "email",
-              "placeholder": "https://example.com"
-            },
-            {
-              "type": "TextBlock",
-              "text": "Would you prefer if you were notified when certain items are low in stock?",
-              "wrap": true
-            },
-            {
-              "type": "Input.Text",
-              "id": "q1",
-              "placeholder": "john.andersen@example.com",
-              "style": "email"
-            },
-            {
-              "type": "TextBlock",
-              "text": "test"
-            },
-            {
-              "type": "Input.Text",
-              "id": "q2",
-              "placeholder": "+1 408 526 7209",
-              "style": "tel"
-            },
-            {
-              "type": "TextBlock",
-              "text": "test"
-            },
-            {
-              "type": "Input.Text",
-              "id": "q3",
-              "placeholder": "+1 408 526 7209",
-              "style": "tel"
-            },
-
-          ]
-        },
-        {
-          "type": "Column",
-          "width": 1,
-          "items": [
-            {
-              "type": "Image",
-              "url": "https://en.meming.world/images/en/b/bc/Mike_Wazowski-Sulley_Face_Swap.jpg",
-              "size": "auto"
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "actions": [
-    {
-      "type": "Action.Submit",
-      "title": "Submit",
-      "id": "newcardID"
-    }
-  ]
-}
-//////////////////////////////////////////////////////////////////end of bs///////////////////////////////////////////////////////////////////////
+//////////////////////////////// ATTACHMENT ACTION ////////////////////////////////
 
 
+// FEATURE: MAINMENU / HELPBOT START ////////////////////////////////
 
-
-/* On mention reply example
-ex User enters @botname 'reply' phrase, the bot will post a threaded reply
-*/
-framework.hears('reply', function (bot, trigger) {
-  console.log("someone asked for a reply.  We will give them two.");
-  responded = true;
-  bot.reply(trigger.message,
-    'This is threaded reply sent using the `bot.reply()` method.',
-    'markdown');
-  var msg_attach = {
-    text: "This is also threaded reply with an attachment sent via bot.reply(): ",
-    file: 'https://media2.giphy.com/media/dTJd5ygpxkzWo/giphy-downsized-medium.gif'
-  };
-  bot.reply(trigger.message, msg_attach);
-});
-// FEATURES COMMANDS END
-
-
-// FEATURES WITH CARDS COMMANDS START
-/* On mention with card example
-ex User enters @botname 'card me' phrase, the bot will produce a personalized card - https://developer.webex.com/docs/api/guides/cards
-*/
-framework.hears('card me', function (bot, trigger) {
-  console.log("someone asked for a card");
-  responded = true;
-  let avatar = trigger.person.avatar;
-
-  trigger.person.
-    cardJSON.body[0].columns[0].items[0].url = (avatar) ? avatar : `${config.webhookUrl}/missing-avatar.jpg`;
-  cardJSON.body[0].columns[0].items[1].text = trigger.person.displayName;
-  cardJSON.body[0].columns[0].items[2].text = trigger.person.emails[0];
-  bot.sendCard(cardJSON, 'This is customizable fallback text for clients that do not support buttons & cards');
-});
-
-
-// Buttons & Cards data
-let cardJSON =
-{
-  $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
-  type: 'AdaptiveCard',
-  version: '1.0',
-  body:
-    [{
-      type: 'ColumnSet',
-      columns:
-        [{
-          type: 'Column',
-          width: '5',
-          items:
-            [{
-              type: 'Image',
-              url: 'Your avatar appears here!',
-              size: 'large',
-              horizontalAlignment: "Center",
-              style: 'person'
-            },
-            {
-              type: 'TextBlock',
-              text: 'Your name will be here!',
-              size: 'medium',
-              horizontalAlignment: "Center",
-              weight: 'Bolder'
-            },
-            {
-              type: 'TextBlock',
-              text: 'And your email goes here!',
-              size: 'small',
-              horizontalAlignment: "Center",
-              isSubtle: true,
-              wrap: false
-            }]
-        }]
-    }]
-};
-
-// FEATURES WITH CARDS COMMANDS END
-
-// ERROR HANDLING START
-
-/* On mention with unexpected bot command
-   Its a good practice is to gracefully handle unexpected input
-*/
 framework.hears(/.*/, function (bot, trigger) {
   // This will fire for any input so only respond if we haven't already
   if (!responded) {
     console.log(`catch-all handler fired for user input: ${trigger.text}`);
     bot.say(`Sorry, I don't know how to respond to "${trigger.text}"`)
       //.then(() => sendHelp(bot))
-      .then(() => mainmenu(bot))
+      .then(() => {
+        alberthelp(bot)
+        //bot.dm(trigger.person.id, managercmd(bot))
+      })
       .catch((e) => console.error(`Problem in the unexepected command hander: ${e.message}`));
   }
   responded = false;
 });
-// ERROR HANDLING END
 
-// FUNCTIONS START
-function sendHelp(bot) {
-  bot.say("markdown", 'These are the commands I can respond to:', '\n\n ' +
-    '1. **framework**   (learn more about the Webex Bot Framework) \n' +
-    '2. **info**  (get your personal details) \n' +
-    '3. **space**  (get details about this space) \n' +
-    '4. **card me** (a cool card!) \n' +
-    '5. **say hi to everyone** (everyone gets a greeting using a call to the Webex SDK) \n' +
-    '6. **reply** (have bot reply to your message) \n' +
-    '7. **help** (what you are reading now)');
-}
-
-function mainmenu(bot) {
+function alberthelp(bot, trigger) {
   console.log("INSIDE MAIN MENU FUNCTION");
   bot.say("markdown", 'I can help you... ', '\n\n ' +
-    '1. **search**   (Search for product details and location) \n' +
-    '2. **lowstock**   (Check what products are low in stock) \n' +
-    '3. **createsurvey**   (Leave a feedback to your manager) \n' +
-    '4. **feedback**   (Leave a feedback to your manager) \n' +
-    '5. **assist**   (We will personally call a staff to assist you) \n' +
-    '6. **mainmenu**   (What you see now)'
+    '1. **get tasks**   (Get your daily tasks for the day) \n' +
+    '2. **feedback**   (Leave a feedback to your manager) \n' +
+    '3. **search**   (Search for product details) \n' +
+    '4. **low stock**   (Check what products are low in stock) \n' +
+    '5. **report**   (Report an incident) \n' +
+    '6. **weather**   (Check for the weather) \n' +
+    '7. **albert help**   (What you see now)'
   );
+
+  bot.say("markdown", 'As a manager, you can... ', '\n\n ' +
+    '1. **set tasks**   (Set daily tasks for the day for your staff) \n' +
+    '2. **add product**   (Add a new product) \n' +
+    '3. **create survey**   (Create a survey) \n' +
+    '4. **send survey**   (Notify your staff and send a survey to them) \n' +
+    '5. **survey responses**   (See the survey responses) \n' +
+    '6. **get feedbacks**   (Get feedbacks submitted by your staff) \n' +
+    '7. **get reports**   (See incident reports submitted by your staff) \n' +
+    '8. **albert help**   (What you see now)'
+  );
+  // var mgremail = trigger.person.emails[0]
+  //bot.dm(trigger.person.id, managercmd(bot))
 }
-// FUNCTIONS END
+
+// function managercmd(bot) {
+//   bot.say("markdown", 'As a manager, you can... ', '\n\n ' +
+//     '1. **set tasks**   (Set daily tasks for the day for your staff) \n' +
+//     '2. **add product**   (Add a new product) \n' +
+//     '3. **create survey**   (Create a survey) \n' +
+//     '4. **send survey**   (Notify your staff and send a survey to them) \n' +
+//     '5. **survey responses**   (See the survey responses) \n' +
+//     '6. **get feedbacks**   (Get feedbacks submitted by your staff) \n' +
+//     '7. **get reports**   (See incident reports submitted by your staff) \n' +
+//     '8. **albert help**   (What you see now)'
+//   );
+// }
+
+// FEATURE: MAINMENU / HELPBOT END ////////////////////////////////
 
 /////////////////////// SERVER START /////////////////////// 
 //Server config & housekeeping
@@ -2071,7 +1968,7 @@ const { get } = require('express/lib/response');
 // const excel = require('exceljs');
 
 const session = require('express-session')({
-  key: 'tailornow_session',
+  key: 'fyp_session',
   secret: 'tojiv',
   store: new MySQLStore({
     host: db.host,
@@ -2103,5 +2000,330 @@ fypDB.setUpDB(false); // To set up database with new tables set (true)
 
 
 /////////////////////// DB END (like app.js) /////////////////////// 
+
+
+// WEBEX TEMPLATE SHIT /////////////////////////////////////
+// framework.hears('framework', function (bot) {
+//   var jds = new Date()
+//   var dfsfs = jds.getDate
+//   console.log("jds: " + jds + ", " + dfsfs)
+//   console.log("framework command received");
+//   responded = true;
+//   bot.say("markdown", "The primary purpose for the [webex-node-bot-framework](https://github.com/jpjpjp/webex-node-bot-framework) was to create a framework based on the [webex-jssdk](https://webex.github.io/webex-js-sdk) which continues to be supported as new features and functionality are added to Webex. This version of the project was designed with two themes in mind: \n\n\n * Mimimize Webex API Calls. The original flint could be quite slow as it attempted to provide bot developers rich details about the space, membership, message and message author. This version eliminates some of that data in the interests of efficiency, (but provides convenience methods to enable bot developers to get this information if it is required)\n * Leverage native Webex data types. The original flint would copy details from the webex objects such as message and person into various flint objects. This version simply attaches the native Webex objects. This increases the framework's efficiency and makes it future proof as new attributes are added to the various webex DTOs ");
+// });
+
+/* On mention with command, using other trigger data, can use lite markdown formatting
+ex User enters @botname 'info' phrase, the bot will provide personal details
+*/
+// framework.hears('info', function (bot, trigger) {
+//   console.log("info command received");
+//   responded = true;
+//   //the "trigger" parameter gives you access to data about the user who entered the command
+//   let personAvatar = trigger.person.avatar;
+//   let personEmail = trigger.person.emails[0];
+//   let personDisplayName = trigger.person.displayName;
+//   // var assert = require('assert');
+//   // if(membership.isModerator = true) {
+//   //   console.log("is mod")
+//   // }
+//   let outputString = `Here is your personal information: \n\n\n **Name:** ${personDisplayName}  \n\n\n **Email:** ${personEmail} \n\n\n **Avatar URL:** ${personAvatar}`;
+//   bot.say("markdown", outputString);
+// });
+
+
+
+/* On mention with bot data 
+ex User enters @botname 'space' phrase, the bot will provide details about that particular space
+*/
+// framework.hears('space', function (bot) {
+//   console.log("space. the final frontier");
+//   responded = true;
+//   let roomTitle = bot.room.title;
+//   let spaceID = bot.room.id;
+//   let roomType = bot.room.type;
+
+//   let outputString = `The title of this space: ${roomTitle} \n\n The roomID of this space: ${spaceID} \n\n The type of this space: ${roomType}`;
+
+//   console.log(outputString);
+//   bot.say("markdown", outputString)
+//     .catch((e) => console.error(`bot.say failed: ${e.message}`));
+// });
+
+/* 
+   Say hi to every member in the space
+   This demonstrates how developers can access the webex
+   sdk to call any Webex API.  API Doc: https://webex.github.io/webex-js-sdk/api/
+*/
+// framework.hears("hi", function (bot) {
+//   console.log("say hi to everyone.  Its a party");
+//   responded = true;
+//   // Use the webex SDK to get the list of users in this space
+//   bot.webex.memberships.list({ roomId: bot.room.id })
+//     .then((memberships) => {
+//       for (const member of memberships.items) {
+//         if (member.personId === bot.person.id) {
+//           // Skip myself!
+//           continue;
+//         }
+//         let displayName = (member.personDisplayName) ? member.personDisplayName : member.personEmail;
+//         let displayEmail = (member.personEmail) ? member.personEmail : member.personDisplayName;
+//         bot.say(`Hello ${displayName}, this is your email ${displayEmail}.`)
+
+        //idk bruh
+        //.then(function(memberships) {
+          // membership = memberships.items[0];
+          // var assert = require('assert');
+          // assert.equal(membership.isModerator, false);
+          // membership.isModerator = true;
+          // return webex.memberships.update(membership)
+        //})
+        // .then(function() {
+        //   //console.log("it goes in here eeeee")
+        //   return webex.memberships.get(membership.id);
+        // })
+        // .then(function(membership) {
+        //   var assert = require('assert');
+        //   assert.equal(membership.isModerator, true);
+        //   return 'success';
+        // });
+
+//       }
+//     })
+//     .catch((e) => {
+//       //console.error(`Call to sdk.memberships.get() failed: ${e.messages}`);
+//       bot.say('Hello everybody!');
+//     });
+// });
+
+//////////////////////////////////////////////////////////START OF bs FORM//////////////////////////////////////////////////////////////////////////////////
+//const thisid = null
+// framework.hears('card', function (bot, trigger) {
+//   console.log("someone asked for a card");
+//   responded = true;
+//   //funcnewcard(bot.sendCard(newcardJSON,'This is customizable fallback text for clients that do not support buttons & cards'));
+//   bot.sendCard(newcardJSON, 'This is customizable fallback text for clients that do not support buttons & cards')
+// });
+// process a submitted card////
+
+// function funcnewcard() { 
+
+// }
+
+//figure out how to put input into name var
+// let newcardJSON =
+// {
+//   "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+//   "type": "AdaptiveCard",
+//   "version": "1.0",
+//   "body": [
+//     {
+//       "type": "ColumnSet",
+//       "columns": [
+//         {
+//           "type": "Column",
+//           "width": 2,
+//           "items": [
+//             {
+//               "type": "TextBlock",
+//               "text": "THis is a workplace survey aha",
+//               "weight": "bolder",
+//               "size": "medium"
+//             },
+//             {
+//               "type": "TextBlock",
+//               "text": "Hello, we are a group of NYP students who are developing a company management system and we would like to find out more about the satisfaction levels of working adults regarding stock and welfare management. This survey will only take you about 5-10 minutes of your time. Thank you!",
+//               "isSubtle": true,
+//               "wrap": true
+//             },
+//             {
+//               "type": "TextBlock",
+//               "text": "Do not worry, ur answers will be kept private so aha",
+//               "isSubtle": true,
+//               "wrap": true,
+//               "size": "small"
+//             },
+
+//             {
+//               "type": "TextBlock",
+//               "text": 'How often do you feel lost when your manager is not there to help you?(Y/N)',
+//               "wrap": true
+//             },
+//             {
+//               "type": "Input.Text",
+//               "id": "name", // put input in here without quotes (storing name as data in db rn)
+//               "placeholder": "John Andersen"
+//             },
+//             {
+//               "type": "TextBlock",
+//               "text": "Is it a hassle to always have to communicate with suppliers/managers regarding restocking of products?(Y/N)",
+//               "wrap": true
+//             },
+//             {
+//               "type": "Input.Text",
+//               "id": "email",
+//               "placeholder": "https://example.com"
+//             },
+//             {
+//               "type": "TextBlock",
+//               "text": "Would you prefer if you were notified when certain items are low in stock?",
+//               "wrap": true
+//             },
+//             {
+//               "type": "Input.Text",
+//               "id": "q1",
+//               "placeholder": "john.andersen@example.com",
+//               "style": "email"
+//             },
+//             {
+//               "type": "TextBlock",
+//               "text": "test"
+//             },
+//             {
+//               "type": "Input.Text",
+//               "id": "q2",
+//               "placeholder": "+1 408 526 7209",
+//               "style": "tel"
+//             },
+//             {
+//               "type": "TextBlock",
+//               "text": "test"
+//             },
+//             {
+//               "type": "Input.Text",
+//               "id": "q3",
+//               "placeholder": "+1 408 526 7209",
+//               "style": "tel"
+//             },
+
+//           ]
+//         },
+//         {
+//           "type": "Column",
+//           "width": 1,
+//           "items": [
+//             {
+//               "type": "Image",
+//               "url": "https://en.meming.world/images/en/b/bc/Mike_Wazowski-Sulley_Face_Swap.jpg",
+//               "size": "auto"
+//             }
+//           ]
+//         }
+//       ]
+//     }
+//   ],
+//   "actions": [
+//     {
+//       "type": "Action.Submit",
+//       "title": "Submit",
+//       "id": "newcardID"
+//     }
+//   ]
+// }
+//////////////////////////////////////////////////////////////////end of bs///////////////////////////////////////////////////////////////////////
+
+
+
+
+/* On mention reply example
+ex User enters @botname 'reply' phrase, the bot will post a threaded reply
+*/
+// framework.hears('reply', function (bot, trigger) {
+//   console.log("someone asked for a reply.  We will give them two.");
+//   responded = true;
+//   bot.reply(trigger.message,
+//     'This is threaded reply sent using the `bot.reply()` method.',
+//     'markdown');
+//   var msg_attach = {
+//     text: "This is also threaded reply with an attachment sent via bot.reply(): ",
+//     file: 'https://media2.giphy.com/media/dTJd5ygpxkzWo/giphy-downsized-medium.gif'
+//   };
+//   bot.reply(trigger.message, msg_attach);
+// });
+
+
+
+// FEATURES WITH CARDS COMMANDS START
+/* On mention with card example
+ex User enters @botname 'card me' phrase, the bot will produce a personalized card - https://developer.webex.com/docs/api/guides/cards
+*/
+// framework.hears('card me', function (bot, trigger) {
+//   console.log("someone asked for a card");
+//   responded = true;
+//   let avatar = trigger.person.avatar;
+
+//   trigger.person.
+//     cardJSON.body[0].columns[0].items[0].url = (avatar) ? avatar : `${config.webhookUrl}/missing-avatar.jpg`;
+//   cardJSON.body[0].columns[0].items[1].text = trigger.person.displayName;
+//   cardJSON.body[0].columns[0].items[2].text = trigger.person.emails[0];
+//   bot.sendCard(cardJSON, 'This is customizable fallback text for clients that do not support buttons & cards');
+// });
+
+
+// Buttons & Cards data
+// let cardJSON =
+// {
+//   $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
+//   type: 'AdaptiveCard',
+//   version: '1.0',
+//   body:
+//     [{
+//       type: 'ColumnSet',
+//       columns:
+//         [{
+//           type: 'Column',
+//           width: '5',
+//           items:
+//             [{
+//               type: 'Image',
+//               url: 'Your avatar appears here!',
+//               size: 'large',
+//               horizontalAlignment: "Center",
+//               style: 'person'
+//             },
+//             {
+//               type: 'TextBlock',
+//               text: 'Your name will be here!',
+//               size: 'medium',
+//               horizontalAlignment: "Center",
+//               weight: 'Bolder'
+//             },
+//             {
+//               type: 'TextBlock',
+//               text: 'And your email goes here!',
+//               size: 'small',
+//               horizontalAlignment: "Center",
+//               isSubtle: true,
+//               wrap: false
+//             }]
+//         }]
+//     }]
+// };
+
+// FEATURES WITH CARDS COMMANDS END
+
+// ERROR HANDLING START
+
+/* On mention with unexpected bot command
+   Its a good practice is to gracefully handle unexpected input
+*/
+
+// ERROR HANDLING END
+
+// FUNCTIONS START
+// function sendHelp(bot) {
+//   bot.say("markdown", 'These are the commands I can respond to:', '\n\n ' +
+//     '1. **framework**   (learn more about the Webex Bot Framework) \n' +
+//     '2. **info**  (get your personal details) \n' +
+//     '3. **space**  (get details about this space) \n' +
+//     '4. **card me** (a cool card!) \n' +
+//     '5. **say hi to everyone** (everyone gets a greeting using a call to the Webex SDK) \n' +
+//     '6. **reply** (have bot reply to your message) \n' +
+//     '7. **help** (what you are reading now)');
+// }
+
+
+// FUNCTIONS END
+
+
 
 
