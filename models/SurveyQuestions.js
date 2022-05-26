@@ -16,7 +16,7 @@ const SurveyQuestions = db.define('surveyqn', {
     sqn1: {
         type: Sequelize.STRING
     },
-    sqn2: {
+    sqn2: { 
         type: Sequelize.STRING
     },
     sqn3: {

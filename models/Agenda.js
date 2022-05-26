@@ -6,7 +6,7 @@ Note that Sequelize automatically pleuralizes the entity name as the table name
 const Agenda = db.define('agenda', {
     today: {
         type: Sequelize.STRING
-    },
+    }, 
     agenda1: {
         type: Sequelize.STRING
     },

@@ -11,7 +11,7 @@ const Report = db.define('report', {
         type: Sequelize.STRING
     },
     report2: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING 
     },
     report3: {
         type: Sequelize.STRING

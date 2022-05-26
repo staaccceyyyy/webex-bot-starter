@@ -1061,7 +1061,7 @@ framework.hears(/fbanswer/, function (bot, trigger) {
   var datestr = JSON.stringify(newdate)
   var dateObj = JSON.parse(datestr)
   let cutdate = dateObj.substring(0,10)
-  Feedback.create({
+  Feedback.create({ 
     fbdate: cutdate,
     fbresponse: fbresponseObj
   }).then(() => {
